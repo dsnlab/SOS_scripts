@@ -16,7 +16,7 @@ echo -e "\nSubject directory: $bids_dir"
 
 # Source task list
 #tasks=`cat tasks.txt` 
-task="DSD"
+task="TIM"
 
 # Load packages
 module load singularity
@@ -32,7 +32,7 @@ cd $bids_dir
 echo -e "\nStarting on: $task"
 echo -e "\n"
 
-export FS_LICENSE=/projects/dsnlab/shared/tag/TAG_scripts/sMRI/license.txt
+export FS_LICENSE=/projects/dsnlab/shared/sos/SOS_scripts/sMRI/license.txt
 
 singularity run --bind "${group_dir}":"${group_dir}" $image $bids_dir $derivatives participant --participant_label $subid -w $working_dir -t $task --use-syn-sdc --output-space {'template','fsaverage5','fsnative'} --fs-license-file $FS_LICENSE
 
