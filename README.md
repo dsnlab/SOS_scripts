@@ -11,3 +11,6 @@ Video clips were created with the javascript file titled export_tim.jsx, which i
 
 # Running fMRI task
 This task was run using PsychoPy3 v3.0.0b7.  Trial order was determined using mutually orthogonal latin squares (MOLS) created using the R package crossdes.  Stimuli durations were determined by sampling from a gamma distribution with mean=16s for task blocks and mean=10s for rest blocks.  More detailed information is contained within the script titled Stim_Duration_Script_rArBrC.R, which is available within the stimuli/ directory of this repository.  This script was used to make stimulus order and timing decisions for the fMRI task.
+
+# SPLT task
+The SPLT task is a behavioral experiment designed to assess multiple domains of social learning.  Stimuli were created using PsychoMorph v.6.  Each face represents an average of three NIMH-ChEFS faces.  Each ChEFS face was manually delineated, averaged, and masked to remove background and hair.  
