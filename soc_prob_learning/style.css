@@ -1,0 +1,108 @@
+.topbox{
+  width:35vw;
+  height: 30vh;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,-50%);
+}
+
+.bottombox {
+  width:35vw;
+  height: 20vw;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,0%);
+}
+
+.decision-left {
+  width:16vw;
+  height: 3.5vw;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-200%,-50%);
+  text-align: center;
+  font-size:3vw;
+  line-height: 3vw;
+}
+.decision-right {
+  width:16vw;
+  height: 3.5vw;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(100%,-50%);
+  text-align: center;
+  font-size:3vw;
+  line-height: 3vw;
+}
+.bigtextbox{
+  width:70vw;
+  height: 20vw;
+  position:absolute;
+  top:10%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,0%);
+}
+.block-text-img img{
+  display: inline;
+  height: 20vh;
+  position: relative;
+  top:auto;
+  left:auto;
+  transform:none;
+}
+.centerbox {
+  width:35vw;
+  height: 20vw;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,-50%);
+}
+.feedback-box{
+  width:70vw;
+  height: 12vh;
+  position:absolute;
+  top:39%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,18vw);
+}
+
+
+.decision-fb{
+width:200px;
+position: absolute;
+top: 50%;
+left:50%;
+margin-right:-50%;
+transform: translate(-50%, -25%);
+}
+
+img {
+display: block;
+height: 25vw;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%,-50%);
+}
+
+.responded {
+  visibility: hidden;
+}
+
+#jspsych-poldrack-survey-multi-choice-form{
+  width:40vw;
+  margin-left:50%;
+  transform: translate(-50%,0%);
+}
