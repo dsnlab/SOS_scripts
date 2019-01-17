@@ -10,7 +10,7 @@
 
 echo -e "\nSetting Up Freesurfer6.0"
 
-source /projects/dsnlab/shared/sos_pilot/sos_scripts/sMRI/SetUpFreeSurfer.sh 
+source /projects/dsnlab/shared/sos/SOS_scripts/sMRI/SetUpFreeSurfer.sh 
 
 echo -e "\nFreesurfer Home is $FREESURFER_HOME"
 
@@ -18,4 +18,4 @@ echo -e "\nThe Subject Directory is $SUBJECTS_DIR"
 
 echo -e "\Running recon-all on ${SUBID}"
 
-recon-all -i /projects/dsnlab/shared/sos_pilot/bids_data/"${SUBID}"/ses-sos/anat/"${SUBID}"_ses-sos_T1w.nii.gz -subjid "${SUBID}" -all
+recon-all -i /projects/dsnlab/shared/sos/bids_data/"${SUBID}"/ses-sos/anat/"${SUBID}"_ses-sos_T1w.nii.gz -subjid "${SUBID}" -all
