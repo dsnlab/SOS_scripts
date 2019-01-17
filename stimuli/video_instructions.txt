@@ -1,0 +1,56 @@
+Instructions for Recording, Saving, and Backing Up the TIM Video
+1.	Make sure you’re logged onto krusty in 109.  This won’t work if you’re logged on as another user.
+2.	Close all programs and make sure the volume is on mute.
+3.	Click the QuickTime Player Icon that is docked on the taskbar (black letter ‘q’ with a blue background).  Don’t search for the application (default is the wrong version… we want 10.4)
+4.	In the QuickTime Player Menu at the top of the screen, click the ‘File’ drop-down menu and select the ‘New Movie Recording’ option.
+5.	When the participant is ready, press the ‘record’ button (red circle within a grey circle) in the lower middle portion of the movie recording window.
+6.	Minimize the movie recording window (press the small yellow circle with a minus sign in the top left portion of the window).
+7.	Start powerpoint.
+8.	…Wait ~ 3.5 minutes…(slightly longer is fine)
+9.	Re-open the movie recorder window (Click the QuickTime Player Icon on the taskbar) and press the ‘stop’ button (the black square within a grey circle) in the lower middle portion of the window.
+    * Note: If the video is less than 3 minutes & 30 seconds, the script will fail.  Check now, so you can record it again if necessary.
+10.	In the QuickTime Player Menu at the top of the screen, click the ‘File’ drop-down menu and select the ‘Save’ option.  Name the video TAGxxxWsos.mov.  Save the file in /psych-cog/dsnlab/TAG/behavior/This_Is_Me/SOS/ (Capitalization & formatting needs to be exact).  Change the ‘xxx’ part to your subject’s 3-digit TAG ID.  
+    * Don’t close QuickTime yet…
+11.	Click the Finder Icon that is docked on the taskbar (blue and white happy face).  In the left-hand column of the finder window, click “casfiles” under “Shared”.  Then, navigate to /psych-cog/dsnlab/TAG/behavior/This_Is_Me/SOS/.  Make sure you see your subject’s video here.  If not, save to Desktop and take steps to reconnect to casfiles.
+12.	Find your subject’s video, right-click while hovering over the video in the finder, and select ‘Copy TAGxxxWsos.mov’.  Open ‘TIM’ folder on Desktop, right-click within folder, and select ‘Paste Item’.
+13.	Close the subject’s video and exit the QuickTime Player application.  
+
+Start the saliva stuff and do you until you get to the scanner suite… everything else is on the Scanner Dell XPS computer:
+
+Instructions for Making Video Clips for Scanner Task (Note: do not close computer while script is running):
+1.	Click the Adobe After Effects Icon on the taskbar (dark purple square with light purple “Ae” letters inside)
+2.	Wait for “Start” pop-up window to display on top of the Adobe After Effects main window.  
+    * Exit out of this pop-up (click the red square with the white ‘x’ in the top righthand portion of the pop-up window)
+3.	Press the ‘File’ tab, hover over the ‘Scripts’ option, and select the ‘Run Script File…’ option.  
+4.	Select the ‘export_tim.jsx’ script and then press ‘Open’.
+5.	When the first script prompt appears, enter the participant’s 3-digit TAG ID code.  This must match the number you entered when you saved the participant’s video.  Press ‘OK’.
+6.	Replace the default time with the desired time to start the first clip.  This should match the number of seconds you recorded on the run sheet.  Press ‘Ok’.
+7.	The computer should start doing its own thing.  After Effects will populate with 12 video clips.  Media Encoder will open and start exporting the clips.  Just let the script run.  
+8.	When it has finished, the bottom right panel of Adobe Media Encoder will say ‘Not currently encoding’.  
+9.	Exit all Adobe Software (if After Effects asks you if you want to Save Changes, press ‘Don’t Save’)
+
+Getting Clips Ready for the Scan
+1.	Open the ‘File Explorer’ and navigate to /This PC/psych-cog/dsnlab/TAG/behavior/SOS/clips/
+    * ‘psych-cog’ is in the ‘Nework locations’
+2.	Double-click your participant’s folder.  It will be named ‘TAGxxx’, where the x’s represent your participant’s 3-digit ID code.
+3.	Check that there are 12 clips – if not, the video was not long enough and they have to do it again (otherwise there is the risk they will see another participant’s video at the end).
+4.	Highlight all 12 clips in this folder, right-click, and choose the ‘Copy’ option.
+5.	Navigate back to /Documents/SOS/TIM_Scanner/subj/ folder.  
+    * ‘subj’ is a local directory that lives on the Dell XPS
+6.	Right-click and choose the ‘Paste’ option somewhere in the white space of this folder.
+7.	Click the green checkmark that says ‘Replace the files in the destination’.
+8.	Check that at least clip #12 looks like your participant, if not, go to step 3.
+9.	PsychoPy now has everything it needs!  Woohoo!
+
+Running the SOS fMRI task
+1.	Exit all other programs. Loading videos takes a lot of processing power.  Don’t force the computer to compete for RAM…
+2.	Make sure the volume is NOT MUTED and on 10.
+3.	Press the PsychoPy3 Icon on the taskbar (black and white diagonal stripes set in a circle)
+4.	Press ‘File’ and then choose the ‘Open…’ option.
+5.	Choose the ‘sos_txt’ file and press the ‘Open’ button.
+6.	Make sure the computer is hooked up to the scanner and the input has been changed to #2 before going any further.
+7.	When you are ready to begin the run, press the button icon that looks like a green running man.  A window will appear asking for the participant’s 3-digit ID code.  Enter the participant’s ID# (replace xxx) and press ‘OK’.  
+8.	You don’t have to do anything else.  The scanner trigger will start the experiment.  Don’t try to start it yourself.  We want the task blocks synced with the scanner.
+    * If you have to start the experiment yourself (e.g., if you have to run it behaviorally in the mock), press the apostrophe button to start.
+    * If you need to restart it for whatever reason, press esc.
+9.	When the EPI run is over (i.e., the scanner isn’t making an obnoxious noise anymore), press the spacebar to exit the program.  
