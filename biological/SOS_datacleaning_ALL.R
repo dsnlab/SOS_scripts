@@ -1,9 +1,10 @@
 # Author: Carra Simpson
 # Date: 19th July 2021
+# Data cleaning of SOS CRP spreadsheet
 # Edited: 10th September 2021 (to describeBy timepoints)
-# Data cleaning of SOS CRP spreadsheet 
+# Edited: 23rd September to add winsorization of log data, where indicated
 
-setwd("~/Documents/RA_Work_2021/Monash Michelle Byrne 2021/Bio_Assay_Analysis/datasets")
+setwd("~/Documents/RA-Work-2021/Monash Michelle Byrne 2021/Bio_Assay_Analysis/datasets/Raw_datasets")
 
 library(readxl)
 library(dplyr)
@@ -52,13 +53,45 @@ CRP_summary <- describeBy(CRP_SOS$CRP_Ave, group = CRP_SOS$Time)
 CRP_summary
 
 # If skew or kurtosis is < -2 or > 2 then transform
-# Results were unacceptable for squareroot transformed data but acceptable after ln transformation
+# Results were unacceptable for squareroot transformed data but acceptable after log transformation
 # All time points now have skewness and kurtosis < +/-2
 CRP_SOS$CRP_log <- log(CRP_SOS$CRP_Ave)
 CRP_log_summary <- describeBy(CRP_SOS$CRP_log, group = CRP_SOS$Time)
 CRP_log_summary
 
-# Michelle to discuss downstream options with collaborators, therefore log non-transformed and "raw + winsorized" to be exported
+# Check how many outliers remaining after log transformation
+CRPlog_up_limit1 <- (CRP_log_summary[[1]][["mean"]] + 3*(CRP_log_summary[[1]][["sd"]]))
+CRPlog_lo_limit1 <- (CRP_log_summary[[1]][["mean"]] - 3*(CRP_log_summary[[1]][["sd"]]))
+
+CRPlog_up_limit2 <- (CRP_log_summary[[2]][["mean"]] + 3*(CRP_log_summary[[2]][["sd"]]))
+CRPlog_lo_limit2 <- (CRP_log_summary[[2]][["mean"]] - 3*(CRP_log_summary[[2]][["sd"]]))
+
+CRPlog_up_limit3 <- (CRP_log_summary[[3]][["mean"]] + 3*(CRP_log_summary[[3]][["sd"]]))
+CRPlog_lo_limit3 <- (CRP_log_summary[[3]][["mean"]] - 3*(CRP_log_summary[[3]][["sd"]]))
+
+CRPlog_up_limit4 <- (CRP_log_summary[[4]][["mean"]] + 3*(CRP_log_summary[[4]][["sd"]]))
+CRPlog_lo_limit4 <- (CRP_log_summary[[4]][["mean"]] - 3*(CRP_log_summary[[4]][["sd"]]))
+
+# Check the number of outliers prior to winsorizing (where relevant)
+# Time 1 zero upper limit outliers, zero lower limit
+sum(CRP_SOS$Time == 1 & CRP_SOS$CRP_log > CRPlog_up_limit1,na.rm=TRUE)
+sum(CRP_SOS$Time == 1 & CRP_SOS$CRP_log < CRPlog_lo_limit1,na.rm=TRUE)
+
+# Time 2 zero upper limit outliers, zero lower limit
+sum(CRP_SOS$Time == 2 & CRP_SOS$CRP_log > CRPlog_up_limit2,na.rm=TRUE)
+sum(CRP_SOS$Time == 2 & CRP_SOS$CRP_log < CRPlog_lo_limit2,na.rm=TRUE)
+
+# Time 3 zero upper limit outliers, zero lower limit
+sum(CRP_SOS$Time == 3 & CRP_SOS$CRP_log > CRPlog_up_limit3,na.rm=TRUE)
+sum(CRP_SOS$Time == 3 & CRP_SOS$CRP_log < CRPlog_lo_limit3,na.rm=TRUE)
+
+# Time 4 zero upper limit outliers, zero lower limit
+sum(CRP_SOS$Time == 4 & CRP_SOS$CRP_log > CRPlog_up_limit4,na.rm=TRUE)
+sum(CRP_SOS$Time == 4 & CRP_SOS$CRP_log < CRPlog_lo_limit4,na.rm=TRUE)
+
+# No need to winsorize CRP after log transformation, no outliers
+
+# Michelle to discuss downstream options with collaborators, therefore log transformed and "raw + winsorized" to be exported
 # Winsorize any variables that are +/-3 SDs from the mean (within time points)
 # First calculate the +/-3 SDs from the mean at each time point for each variable
 CRP_up_limit1 <- (CRP_summary[[1]][["mean"]] + 3*(CRP_summary[[1]][["sd"]]))
@@ -216,6 +249,64 @@ IL6_summary_log
 TNFalpha_summary_log <- describeBy(cytokines_SOS$TNFalpha_log, group = cytokines_SOS$Time)
 TNFalpha_summary_log
 
+# IL-10
+IL10log_up_limit1 <- (IL10_summary_log[[1]][["mean"]] + 3*(IL10_summary_log[[1]][["sd"]]))
+IL10log_lo_limit1 <- (IL10_summary_log[[1]][["mean"]] - 3*(IL10_summary_log[[1]][["sd"]]))
+
+IL10log_up_limit2 <- (IL10_summary_log[[2]][["mean"]] + 3*(IL10_summary_log[[2]][["sd"]]))
+IL10log_lo_limit2 <- (IL10_summary_log[[2]][["mean"]] - 3*(IL10_summary_log[[2]][["sd"]]))
+
+IL10log_up_limit3 <- (IL10_summary_log[[3]][["mean"]] + 3*(IL10_summary_log[[3]][["sd"]]))
+IL10log_lo_limit3 <- (IL10_summary_log[[3]][["mean"]] - 3*(IL10_summary_log[[3]][["sd"]]))
+
+IL10log_up_limit4 <- (IL10_summary_log[[4]][["mean"]] + 3*(IL10_summary_log[[4]][["sd"]]))
+IL10log_lo_limit4 <- (IL10_summary_log[[4]][["mean"]] - 3*(IL10_summary_log[[4]][["sd"]]))
+
+# IL-6
+IL6log_up_limit1 <- (IL6_summary_log[[1]][["mean"]] + 3*(IL6_summary_log[[1]][["sd"]]))
+IL6log_lo_limit1 <- (IL6_summary_log[[1]][["mean"]] - 3*(IL6_summary_log[[1]][["sd"]]))
+
+IL6log_up_limit2 <- (IL6_summary_log[[2]][["mean"]] + 3*(IL6_summary_log[[2]][["sd"]]))
+IL6log_lo_limit2 <- (IL6_summary_log[[2]][["mean"]] - 3*(IL6_summary_log[[2]][["sd"]]))
+
+IL6log_up_limit3 <- (IL6_summary_log[[3]][["mean"]] + 3*(IL6_summary_log[[3]][["sd"]]))
+IL6log_lo_limit3 <- (IL6_summary_log[[3]][["mean"]] - 3*(IL6_summary_log[[3]][["sd"]]))
+
+IL6log_up_limit4 <- (IL6_summary_log[[4]][["mean"]] + 3*(IL6_summary_log[[4]][["sd"]]))
+IL6log_lo_limit4 <- (IL6_summary_log[[4]][["mean"]] - 3*(IL6_summary_log[[4]][["sd"]]))
+
+# TNF_alpha
+TNFalphalog_up_limit1 <- (TNFalpha_summary_log[[1]][["mean"]] + 3*(TNFalpha_summary_log[[1]][["sd"]]))
+TNFalphalog_lo_limit1 <- (TNFalpha_summary_log[[1]][["mean"]] - 3*(TNFalpha_summary_log[[1]][["sd"]]))
+
+TNFalphalog_up_limit2 <- (TNFalpha_summary_log[[2]][["mean"]] + 3*(TNFalpha_summary_log[[2]][["sd"]]))
+TNFalphalog_lo_limit2 <- (TNFalpha_summary_log[[2]][["mean"]] - 3*(TNFalpha_summary_log[[2]][["sd"]]))
+
+TNFalphalog_up_limit3 <- (TNFalpha_summary_log[[3]][["mean"]] + 3*(TNFalpha_summary_log[[3]][["sd"]]))
+TNFalphalog_lo_limit3 <- (TNFalpha_summary_log[[3]][["mean"]] - 3*(TNFalpha_summary_log[[3]][["sd"]]))
+
+TNFalphalog_up_limit4 <- (TNFalpha_summary_log[[4]][["mean"]] + 3*(TNFalpha_summary_log[[4]][["sd"]]))
+TNFalphalog_lo_limit4 <- (TNFalpha_summary_log[[4]][["mean"]] - 3*(TNFalpha_summary_log[[4]][["sd"]]))
+
+# IL-10
+# Check the number of outliers prior to winsorizing (where relevant)
+# Time 1, zero upper limit outliers, zero lower limit. 
+# Winsorization of raw data therefore loses a lot of variation
+sum(cytokines_SOS$Time == 1 & cytokines_SOS$IL10_log > IL10log_up_limit1,na.rm=TRUE)
+sum(cytokines_SOS$Time == 1 & cytokines_SOS$IL10_log < IL10log_lo_limit1,na.rm=TRUE)
+
+# Time 2, zero upper limit outliers, zero lower limit
+sum(cytokines_SOS$Time == 2 & cytokines_SOS$IL10_log > IL10log_up_limit2,na.rm=TRUE)
+sum(cytokines_SOS$Time == 2 & cytokines_SOS$IL10_log < IL10log_lo_limit2,na.rm=TRUE)
+
+# Time 3, zero upper limit outliers, zero lower limit
+sum(cytokines_SOS$Time == 3 & cytokines_SOS$IL10_log > IL10log_up_limit3,na.rm=TRUE)
+sum(cytokines_SOS$Time == 3 & cytokines_SOS$IL10_log < IL10log_lo_limit3,na.rm=TRUE)
+
+# Time 4, zero upper limit outliers, zero lower limit
+sum(cytokines_SOS$Time == 4 & cytokines_SOS$IL10_log > IL10log_up_limit4,na.rm=TRUE)
+sum(cytokines_SOS$Time == 4 & cytokines_SOS$IL10_log < IL10log_lo_limit4,na.rm=TRUE)
+
 # Boxplots for the cytokines
 ggplot(cytokines_SOS, aes(x = "", y = IL10_log)) +   
   geom_boxplot() +
@@ -250,7 +341,7 @@ IL10_lo_limit <- (IL10_summary$mean - 3*(IL10_summary$sd))
 IL6_lo_limit <- (IL6_summary$mean - 3*(IL6_summary$sd))
 TNFalpha_lo_limit <- (TNFalpha_summary$mean - 3*(TNFalpha_summary$sd))
 
-# Michelle to discuss downstream options with collaborators, therefore log non-transformed and "raw" winsorized to be exported
+# Michelle to discuss downstream options with collaborators, therefore log transformed and "raw" winsorized to be exported
 # Winsorize any variables that are +/-3 SDs from the mean (within time points)
 # First calculate the +/-3 SDs from the mean for each variable
 # IL-10
@@ -576,6 +667,136 @@ Cortisol_summary_log
 
 Estradiol_summary_log <- describe(hormones_SOS$Estradiol_log)
 Estradiol_summary_log
+
+
+# DHEA log
+DHEAlog_up_limit1 <- (DHEA_summary_log[[1]][["mean"]] + 3*(DHEA_summary_log[[1]][["sd"]]))
+DHEAlog_lo_limit1 <- (DHEA_summary_log[[1]][["mean"]] - 3*(DHEA_summary_log[[1]][["sd"]]))
+
+DHEAlog_up_limit2 <- (DHEA_summary_log[[2]][["mean"]] + 3*(DHEA_summary_log[[2]][["sd"]]))
+DHEAlog_lo_limit2 <- (DHEA_summary_log[[2]][["mean"]] - 3*(DHEA_summary_log[[2]][["sd"]]))
+
+DHEAlog_up_limit3 <- (DHEA_summary_log[[3]][["mean"]] + 3*(DHEA_summary_log[[3]][["sd"]]))
+DHEAlog_lo_limit3 <- (DHEA_summary_log[[3]][["mean"]] - 3*(DHEA_summary_log[[3]][["sd"]]))
+
+DHEAlog_up_limit4 <- (DHEA_summary_log[[4]][["mean"]] + 3*(DHEA_summary_log[[4]][["sd"]]))
+DHEAlog_lo_limit4 <- (DHEA_summary_log[[4]][["mean"]] - 3*(DHEA_summary_log[[4]][["sd"]]))
+
+# Testosterone
+Testosteronelog_up_limit1 <- (Testosterone_summary_log[[1]][["mean"]] + 3*(Testosterone_summary_log[[1]][["sd"]]))
+Testosteronelog_lo_limit1 <- (Testosterone_summary_log[[1]][["mean"]] - 3*(Testosterone_summary_log[[1]][["sd"]]))
+
+Testosteronelog_up_limit2 <- (Testosterone_summary_log[[2]][["mean"]] + 3*(Testosterone_summary_log[[2]][["sd"]]))
+Testosteronelog_lo_limit2 <- (Testosterone_summary_log[[2]][["mean"]] - 3*(Testosterone_summary_log[[2]][["sd"]]))
+
+Testosteronelog_up_limit3 <- (Testosterone_summary_log[[3]][["mean"]] + 3*(Testosterone_summary_log[[3]][["sd"]]))
+Testosteronelog_lo_limit3 <- (Testosterone_summary_log[[3]][["mean"]] - 3*(Testosterone_summary_log[[3]][["sd"]]))
+
+Testosteronelog_up_limit4 <- (Testosterone_summary_log[[4]][["mean"]] + 3*(Testosterone_summary_log[[4]][["sd"]]))
+Testosteronelog_lo_limit4 <- (Testosterone_summary_log[[4]][["mean"]] - 3*(Testosterone_summary_log[[4]][["sd"]]))
+
+# Cortisol
+Cortisollog_up_limit1 <- (Cortisol_summary_log[[1]][["mean"]] + 3*(Cortisol_summary_log[[1]][["sd"]]))
+Cortisollog_lo_limit1 <- (Cortisol_summary_log[[1]][["mean"]] - 3*(Cortisol_summary_log[[1]][["sd"]]))
+
+Cortisollog_up_limit2 <- (Cortisol_summary_log[[2]][["mean"]] + 3*(Cortisol_summary_log[[2]][["sd"]]))
+Cortisollog_lo_limit2 <- (Cortisol_summary_log[[2]][["mean"]] - 3*(Cortisol_summary_log[[2]][["sd"]]))
+
+Cortisollog_up_limit3 <- (Cortisol_summary_log[[3]][["mean"]] + 3*(Cortisol_summary_log[[3]][["sd"]]))
+Cortisollog_lo_limit3 <- (Cortisol_summary_log[[3]][["mean"]] - 3*(Cortisol_summary_log[[3]][["sd"]]))
+
+Cortisollog_up_limit4 <- (Cortisol_summary_log[[4]][["mean"]] + 3*(Cortisol_summary_log[[4]][["sd"]]))
+Cortisollog_lo_limit4 <- (Cortisol_summary_log[[4]][["mean"]] - 3*(Cortisol_summary_log[[4]][["sd"]]))
+
+# Estradiol (only one time point so no need to access "describe by" data, just regular mean and sd)
+Estradiollog_up_limit <- (Estradiol_summary_log$mean + 3*(Estradiol_summary_log$sd))
+Estradiollog_lo_limit <- (Estradiol_summary_log$mean - 3*(Estradiol_summary_log$sd))
+
+# DHEA log
+# Check the number of outliers prior to winsorizing 
+# Time 1, zero upper limit outliers, two lower limit. 
+sum(hormones_SOS$Time == 1 & hormones_SOS$DHEA_log > DHEAlog_up_limit1,na.rm=TRUE)
+sum(hormones_SOS$Time == 1 & hormones_SOS$DHEA_log < DHEAlog_lo_limit1,na.rm=TRUE)
+
+# Time 2, zero upper limit outliers, one lower limit
+sum(hormones_SOS$Time == 2 & hormones_SOS$DHEA_log > DHEAlog_up_limit2,na.rm=TRUE)
+sum(hormones_SOS$Time == 2 & hormones_SOS$DHEA_log < DHEAlog_lo_limit2,na.rm=TRUE)
+
+# Time 3, zero upper limit outliers, one lower limit
+sum(hormones_SOS$Time == 3 & hormones_SOS$DHEA_log > DHEAlog_up_limit3,na.rm=TRUE)
+sum(hormones_SOS$Time == 3 & hormones_SOS$DHEA_log < DHEAlog_lo_limit3,na.rm=TRUE)
+
+# Time 4, zero upper limit outliers, zero lower limit
+sum(hormones_SOS$Time == 4 & hormones_SOS$DHEA_log >  DHEAlog_up_limit4,na.rm=TRUE)
+sum(hormones_SOS$Time == 4 & hormones_SOS$DHEA_log <  DHEAlog_lo_limit4,na.rm=TRUE)
+
+# Testosterone log
+# Check the number of outliers prior to winsorizing 
+# Time 1, zero upper limit outliers, one lower limit. 
+sum(hormones_SOS$Time == 1 & hormones_SOS$Testosterone_log > Testosteronelog_up_limit1,na.rm=TRUE)
+sum(hormones_SOS$Time == 1 & hormones_SOS$Testosterone_log < Testosteronelog_lo_limit1,na.rm=TRUE)
+
+# Time 2, zero upper limit outliers, zero lower limit
+sum(hormones_SOS$Time == 2 & hormones_SOS$Testosterone_log > Testosteronelog_up_limit2,na.rm=TRUE)
+sum(hormones_SOS$Time == 2 & hormones_SOS$Testosterone_log < Testosteronelog_lo_limit2,na.rm=TRUE)
+
+# Time 3, zero upper limit outlier, two lower limit
+sum(hormones_SOS$Time == 3 & hormones_SOS$Testosterone_log > Testosteronelog_up_limit3,na.rm=TRUE)
+sum(hormones_SOS$Time == 3 & hormones_SOS$Testosterone_log < Testosteronelog_lo_limit3,na.rm=TRUE)
+
+# Time 4 1 zero limit outliers, one lower limit
+sum(hormones_SOS$Time == 4 & hormones_SOS$Testosterone_log > Testosteronelog_up_limit4,na.rm=TRUE)
+sum(hormones_SOS$Time == 4 & hormones_SOS$Testosterone_log < Testosteronelog_lo_limit4,na.rm=TRUE)
+
+
+# Cortisol log
+# Check the number of outliers prior to winsorizing 
+# Time 1, zero upper limit outliers, zero lower limit. 
+sum(hormones_SOS$Time == 1 & hormones_SOS$Cortisol_log > Cortisollog_up_limit1,na.rm=TRUE)
+sum(hormones_SOS$Time == 1 & hormones_SOS$Cortisol_log < Cortisollog_lo_limit1,na.rm=TRUE)
+
+# Time 2, zero upper limit outlier, zero lower limit
+sum(hormones_SOS$Time == 2 & hormones_SOS$Cortisol_log > Cortisollog_up_limit2,na.rm=TRUE)
+sum(hormones_SOS$Time == 2 & hormones_SOS$Cortisol_log < Cortisollog_lo_limit2,na.rm=TRUE)
+
+# Time 3, zero upper limit outliers, one lower limit
+sum(hormones_SOS$Time == 3 & hormones_SOS$Cortisol_log > Cortisollog_up_limit3,na.rm=TRUE)
+sum(hormones_SOS$Time == 3 & hormones_SOS$Cortisol_log < Cortisollog_lo_limit3,na.rm=TRUE)
+
+# Time 4, 0 upper limit outlier, zero lower limit
+sum(hormones_SOS$Time == 4 & hormones_SOS$Cortisol_log > Cortisollog_up_limit4,na.rm=TRUE)
+sum(hormones_SOS$Time == 4 & hormones_SOS$Cortisol_log < Cortisollog_lo_limit4,na.rm=TRUE)
+
+
+# Estradio log
+# Check the number of outliers prior to winsorizing 
+# Estradiol is only collected at one time point
+# zero upper limit outliers, one lower limit
+sum(hormones_SOS$Estradiol_log > Estradiollog_up_limit,na.rm=TRUE)
+sum(hormones_SOS$Estradiol_log < Estradiollog_lo_limit,na.rm=TRUE)
+
+# Winsorize by time point due to outliers, no need to winsorize upper limit as no outliers
+# DHEA log (only time 1, 2, 3 contained lower limit outliers)
+
+hormones_SOS$DHEA_log  <- ifelse(hormones_SOS$Time==1, (Winsorize(hormones_SOS$DHEA_log, minval = DHEAlog_lo_limit1)),hormones_SOS$DHEA_log)
+hormones_SOS$DHEA_log  <- ifelse(hormones_SOS$Time==2, (Winsorize(hormones_SOS$DHEA_log, minval = DHEAlog_lo_limit2)),hormones_SOS$DHEA_log)
+hormones_SOS$DHEA_log  <- ifelse(hormones_SOS$Time==3, (Winsorize(hormones_SOS$DHEA_log, minval = DHEAlog_lo_limit3)),hormones_SOS$DHEA_log)
+
+# Testosterone log (only time 1, 3, 4 contained lower limit outliers)
+
+hormones_SOS$Testosterone_log  <- ifelse(hormones_SOS$Time==1, (Winsorize(hormones_SOS$Testosterone_log, minval = Testosteronelog_lo_limit1)),hormones_SOS$Testosterone_log)
+hormones_SOS$Testosterone_log  <- ifelse(hormones_SOS$Time==3, (Winsorize(hormones_SOS$Testosterone_log, minval = Testosteronelog_lo_limit3)),hormones_SOS$Testosterone_log)
+hormones_SOS$Testosterone_log  <- ifelse(hormones_SOS$Time==4, (Winsorize(hormones_SOS$Testosterone_log, minval = Testosteronelog_lo_limit4)),hormones_SOS$Testosterone_log)
+
+# Cortisol log (only time 3 contained lower limit outliers)
+
+hormones_SOS$Cortisol_log  <- ifelse(hormones_SOS$Time==3, (Winsorize(hormones_SOS$Cortisol_log, minval = Cortisollog_lo_limit3)),hormones_SOS$Cortisol_log)
+
+
+# Estradiol (only collected at one time point, with one lower limit outlier)
+
+hormones_SOS$Estradiol_log  <- Winsorize(hormones_SOS$Estradiol_log, minval = Estradiollog_lo_limit, na.rm = TRUE)
+
 
 # Boxplots for the hormones
 ggplot(hormones_SOS, aes(x = "", y = DHEA_log)) +   
