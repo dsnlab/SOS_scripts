@@ -1,0 +1,522 @@
+---
+title: "SOS Biologiacal data visualisation: CORTISOL"
+output: html_notebook
+---
+#load libraries:
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library("data.table")
+library(stringr)
+library("plyr")
+library(ggpubr)
+library(DescTools)
+library(MESS)
+
+First, we import the SOS_hormones_cleaned.csv file and remove participants who do not have Cortisol data at all 4 time points. 
+```{r}
+#import cleaned bioloigcal dataset:
+setwd("~/Documents/8_Byrne_work/SOS_Bioloigical_data_cleaned")
+SOS_hormones_cleaned <- read.csv('SOS_hormones_cleaned.csv')
+SOS_hormones_cleaned$SampleID <- as.character(SOS_hormones_cleaned$SampleID)
+
+#Create variable specfic to Cortisol:
+SOS_Cortisol <- SOS_hormones_cleaned[,c("SampleID", "Time","Cortisol_ug_dL", "Cortisol_log", "Cortisol_log")]
+
+#Remove participants who do not have all 3 timepoints:
+SOS_Cortisol_T1 = SOS_Cortisol %>% filter(Time == "1")
+SOS_Cortisol_T2 = SOS_Cortisol %>% filter(Time == "2")
+SOS_Cortisol_T3 = SOS_Cortisol %>% filter(Time == "3")
+SOS_Cortisol_T4 = SOS_Cortisol %>% filter(Time == "4")
+
+Merge1 <-merge(SOS_Cortisol_T1, SOS_Cortisol_T2, by = "SampleID", all = FALSE, all.x = TRUE)
+Merge2 <-merge(Merge1, SOS_Cortisol_T3, by = "SampleID", all = FALSE, all.x = TRUE)
+SOS_Cortisol_reshaped <-merge(Merge2, SOS_Cortisol_T4, by = "SampleID", all = FALSE, all.x = TRUE)
+
+SOS_Cortisol_all_timepoints <- na.omit(SOS_Cortisol_reshaped)
+
+#Merge to now include only the people who have all 4 timepoints:
+SOS_Cortisol_final <- merge(SOS_Cortisol, SOS_Cortisol_all_timepoints, by = "SampleID", all = FALSE)
+SOS_Cortisol_final <- SOS_Cortisol_final[1:5]
+SOS_Cortisol_final <- (SOS_Cortisol_final %>% arrange(SampleID,Time))
+
+total <- unique(SOS_Cortisol$SampleID)
+total_keep <- unique(SOS_Cortisol_final$SampleID)
+perc_all_timepoints <- ((length(total_keep))/(length(total)))*100
+
+perc_all_timepoints 
+
+```
+
+Plot each participants response (Cortisol_log) over time:
+```{r}
+
+#Clear variables no longer needed:
+rm(SOS_Cortisol_T1, SOS_Cortisol_T2,SOS_Cortisol_T3,SOS_Cortisol_T4, Merge1, Merge2, SOS_Cortisol_reshaped, SOS_Cortisol_all_timepoints, SOS_Cortisol)
+
+All_participants_plot <- ggplot(SOS_Cortisol_final, aes(x = Time, y = Cortisol_log, group = SampleID, colour = SampleID)) +
+                          geom_line()
+All_participants_plot
+```
+
+```{r}
+#Clear variables we no longer need:
+rm(All_participants_plot)
+
+# Identify where the maximum value is (T1-T4) and add as a variable to dataframe
+PeakTime <- list()
+PeakTime_id <- list()
+Responders <- list()
+
+for (i in unique(SOS_Cortisol_final$SampleID)) {
+    idx <- which(SOS_Cortisol_final$SampleID==i, arr.ind=TRUE)
+    #Get participants peak timepoint
+    PeakTime[i] <- which.max(SOS_Cortisol_final$Cortisol_log[idx])
+    #Get SampleID
+    PeakTime_id[i] <- i
+    #Using T1 > T2,T3,T4 as exclusion criteria, split group into "Responders" and "Not Responders"
+      if (PeakTime[i] == "1"){ 
+      Responders[i] <- "0"
+      } else {
+      Responders[i] <- "1"
+      }
+    }
+
+PeakTime <- data.frame(PeakTime)
+PeakTime <- t(PeakTime)
+PeakTime <- data.frame(PeakTime)
+
+PeakTime_id <- data.frame(PeakTime_id)
+PeakTime_id <- t(PeakTime_id)
+PeakTime_id <- data.frame(PeakTime_id)
+
+Responders <- data.frame(Responders)
+Responders <- t(Responders)
+Responders <- data.frame(Responders)
+
+
+Peak_time_all <- cbind(PeakTime, PeakTime_id, Responders)
+#Clear variables no longer needed:
+rm(PeakTime, PeakTime_id)
+
+names(Peak_time_all)[1]<- "PeakTime"
+names(Peak_time_all)[2]<- "SampleID"
+names(Peak_time_all)[3]<- "Responders"
+
+SOS_Cortisol_final <-merge(SOS_Cortisol_final, Peak_time_all, by = "SampleID", all = TRUE)
+rm(Peak_time_all)
+SOS_Cortisol_final$PeakTime <- as.factor(SOS_Cortisol_final$PeakTime)
+
+```
+
+We have split the data according to where the participant's maximum Cortisol response occured; at time point 1, 2, 3 or 4. 
+We can then plot the change over time, depending on the group variable "Peak Time":
+```{r}
+Overall <- ggline(SOS_Cortisol_final, "Time", "Cortisol_log", 
+           group = "PeakTime",
+           add = c("mean_sd", "jitter"),
+           color = "PeakTime")
+Overall
+
+```
+```{r}
+summary(SOS_Cortisol_final)
+```
+The number of subjects per "Peak Time" group:
+```{r}
+(summary(SOS_Cortisol_final$PeakTime)/4)
+```
+
+```{r}
+#Clear variable we no longer need:
+rm(Overall)
+
+#Divide participants by when their cortisol peak occured:
+PeakTime1 <- SOS_Cortisol_final %>% filter(PeakTime == "1") 
+PeakTime2 <- SOS_Cortisol_final %>% filter(PeakTime == "2") 
+PeakTime3 <- SOS_Cortisol_final %>% filter(PeakTime == "3") 
+PeakTime4 <- SOS_Cortisol_final %>% filter(PeakTime == "4") 
+```
+
+Now for more detail, within each "Peak time" group, we can see how individual subjects reacted:
+```{r}
+PT1 <- ggplot(data = PeakTime1,aes(x = Time, y = Cortisol_log, group = SampleID, colour = SampleID)) +
+       geom_line()+
+       stat_summary(aes(group = 1), geom = "line", fun = mean, size = 1)
+
+PT1
+```
+Descriptive stats of subjects whose response peaks at Timepoint 1
+```{r}
+summary(PeakTime1)
+```
+
+```{r}
+PT2 <- ggplot(data = PeakTime2,aes(x = Time, y = Cortisol_log, group = SampleID, colour = SampleID)) + 
+      geom_line()+
+      stat_summary(aes(group = 1), geom = "line", fun = mean, size = 1)
+PT2
+```
+Descriptive stats of subjects whose response peaks at Timepoint 2
+```{r}
+summary(PeakTime2)
+```
+
+
+```{r}
+PT3 <- ggplot(data = PeakTime3,aes(x = Time, y = Cortisol_log, group = SampleID, colour = SampleID)) + 
+      geom_line()+
+     stat_summary(aes(group = 1), geom = "line", fun = mean, size = 1)
+PT3
+```
+Descriptive stats of subjects whose response peaks at Timepoint 3
+```{r}
+summary(PeakTime3)
+```
+
+
+```{r}
+PT4 <- ggplot(data = PeakTime4,aes(x = Time, y = Cortisol_log, group = SampleID, colour = SampleID)) + 
+        geom_line()+
+        stat_summary(aes(group = 1), geom = "line", fun = mean, size = 1)
+PT4
+```
+Descriptive stats of subjects whose response peaks at Timepoint 4
+```{r}
+summary(PeakTime4)
+```
+
+
+Some participants may be 'non responders', meaning they did not show a response to the task. If their peak response was at Timepoint 1, we have classified participants as 'non responders' (0). All other participants (who show peaks at Timepoints 2,3 or 4) are included as responders (1).
+```{r}
+#Clear variables no longer needed:
+rm(PeakTime1, PT1,PeakTime2, PT2,PeakTime3, PT3, PeakTime4,PT4)
+
+#Split group into "Responders" and "Not Responders"
+
+RepondersvNoResponders_plot <-ggline(SOS_Cortisol_final, "Time", "Cortisol_log", 
+                               add = c("mean_sd", "jitter"),
+                               color = "Responders")   
+
+RepondersvNoResponders_plot
+
+```
+
+The number of subjects Who are responders (1) and 'non-responders' (0)
+```{r}
+(summary(SOS_Cortisol_final$Responders)/4)
+```
+
+```{r}
+#Clear variable we no longer need:
+rm(RepondersvNoResponders_plot)
+```
+
+We want to know whether responders (1) and 'non-responders' (0) showed a significantly different response at Timepoint 1:
+```{r}
+#Do a t-test to compare whether non-responders(0) had a higher T1 than responders(1)
+Time_point_1 <- SOS_Cortisol_final[1:7]
+Time_point_1 = Time_point_1 %>% filter(Time == "1")
+
+compare_means(Cortisol_log ~ Responders, data = Time_point_1,
+              method = "t.test")
+```
+
+
+People show differing baseline levels of cortisol responding. We can calculate their relative change from baseline (Timepoint 1) at Timepoints 2,3 and 4.
+```{r}
+rm(i, idx)
+
+#For each subject, normalise time points 2,3 and 4, to timepoint 1.
+Normalised_values <- list()
+Normalise_id <- list()
+
+for (i in as.character(SOS_Cortisol_final$SampleID)) {
+  idx <- which(SOS_Cortisol_final$SampleID==i, arr.ind=TRUE)
+  SampleID_current <- i
+  baseline <- SOS_Cortisol_final$Cortisol_log[idx[1]]
+    for (t in 1:4){
+    Normalised_values[idx[t]] <- (SOS_Cortisol_final$Cortisol_log[idx[t]] - baseline)
+    Normalise_id[idx[t]] <- SampleID_current 
+    }
+}
+
+#Reformat lists into data.frames     
+Normalised_values <- data.frame(Normalised_values)
+Normalised_values <- t(Normalised_values)
+Normalised_values <- data.frame(Normalised_values)
+
+Normalise_id <- data.frame(Normalise_id)
+Normalise_id <- t(Normalise_id)
+Normalise_id <- data.frame(Normalise_id)
+#Merge two data.frames
+Normalised_all <- cbind(Normalised_values, Normalise_id)
+
+#Clear variables no longer needed:
+rm(Normalised_values, Normalise_id)
+
+#Rename columns for merge (SampleID, also helps for checking that the rows have matched appropriately)
+names(Normalised_all)[1]<- "BL_Norm_Cortisol_log"
+names(Normalised_all)[2]<- "SampleID"
+
+#Merge with SOS_Cortisol_final and remove unecessary extra SampleID column:
+SOS_Cortisol_final <- cbind(SOS_Cortisol_final, Normalised_all)
+SOS_Cortisol_final <- SOS_Cortisol_final[1:8]
+
+#Clear variables no longer needed:
+rm(Normalised_all, baseline, i, idx, SampleID_current, t)
+```
+
+Plot of change over time, depending on the group variable "Peak Time":
+```{r}
+Relative_to_baseline <- ggline(SOS_Cortisol_final, "Time", "BL_Norm_Cortisol_log", 
+           group = "PeakTime",
+           add = c("mean_sd", "jitter"),
+           color = "PeakTime")
+Relative_to_baseline
+```
+
+Plot of change over time, depending on whether responders (1) and 'non-responders' (0) 
+```{r}
+Relative_to_baseline_resp <- ggline(SOS_Cortisol_final, "Time", "BL_Norm_Cortisol_log", 
+           group = "Responders",
+           size = 0.5,
+           add = c("mean_sd", "jitter"),
+           color = "Responders")
+Relative_to_baseline_resp
+```
+
+We want to know whether there are significant increases over time (relative to baseline) for responders (1):
+```{r}
+rm(Relative_to_baseline, Relative_to_baseline_resp)
+
+#Test effect of time on response
+Responders <- SOS_Cortisol_final[1:8]
+Responders = Responders %>% filter(Responders == 1)
+
+compare_means(BL_Norm_Cortisol_log ~ Time, data = Responders,
+              method = "anova")
+
+```
+```{r}
+#Follow up repeated measures t-tests
+compare_means(BL_Norm_Cortisol_log ~ Time, data = Responders, paired = TRUE,
+              method = "t.test")
+```
+
+```{r}
+#Calculate the area under the curve for each responder: 
+AUC_list <- list()
+AUC_id <- list()
+
+for (i in unique(SOS_Cortisol_final$SampleID)) {
+    idx <- which(SOS_Cortisol_final$SampleID==i, arr.ind=TRUE)
+    #Get participants AUC for T1-4:
+    AUC_list[i] <- auc(
+                SOS_Cortisol_final$Time[idx],
+                SOS_Cortisol_final$BL_Norm_Cortisol_log[idx],
+                from = min(1, na.rm = TRUE),
+                to = max(4, na.rm = TRUE),
+                type = c("spline"),
+                absolutearea = FALSE,
+                subdivisions = 100
+                )
+    #Get SampleID
+    AUC_id[i] <- i
+}
+#Reformat lists into data.frames     
+AUC_list <- data.frame(AUC_list)
+AUC_list <- t(AUC_list)
+AUC_list <- data.frame(AUC_list)
+
+AUC_id <- data.frame(AUC_id)
+AUC_id <- t(AUC_id)
+AUC_id <- data.frame(AUC_id)
+
+#Merge two data.frames
+AUC_all <- cbind(AUC_list, AUC_id)
+
+#Clear variables no longer needed:
+rm(AUC_list, AUC_id)
+
+#Rename columns for merge (SampleID, also helps for checking that the rows have matched appropriately)
+names(AUC_all)[1]<- "AUC_BL_Norm_Cortisol_log"
+names(AUC_all)[2]<- "SampleID"
+
+#Merge with SOS_Cortisol_final and remove unecessary extra SampleID column:
+SOS_Cortisol_final <-merge(SOS_Cortisol_final, AUC_all, by = "SampleID", all = TRUE)
+
+#Clear variables no longer needed:
+rm(i, idx, AUC_all)
+
+#Update Responders dataframe to include AUC 
+Responders <- SOS_Cortisol_final[1:9]
+Responders = Responders %>% filter(Responders == 1)
+
+```
+
+Plot AUC values:
+```{r}
+#Plot AUC value for
+AUC_plot <- ggplot(SOS_Cortisol_final, aes(Responders, AUC_BL_Norm_Cortisol_log, colour=Responders)) +
+    geom_violin() +
+    geom_boxplot(width=0.2, position = "dodge2") + 
+    stat_summary(fun.data=mean_sdl, 
+                 geom="pointrange") +
+    geom_jitter(shape=16, position=position_jitter(0.05))
+
+AUC_plot
+```
+
+```{r}
+rm(AUC_plot)
+```
+
+We can see that the greatest change in Cortisol level occurs between T2 and T3. We are therefore interested to quantify the magnitude of this change per participant. If participant's change is +ve (meaning an increase from T2 --> T3) = 1. If participant's change is -ve (meaning a decrease from T2 --> T3) = 0: 
+
+```{r}
+T2T3_list <- list()
+T2T3_id <- list()
+T2T3_direction <- list()
+
+for (i in as.character(SOS_Cortisol_final$SampleID)){
+    idx <- which(SOS_Cortisol_final$SampleID==i, arr.ind=TRUE)
+    T2T3_id[i] <-i
+    T2T3_list[i] <-(SOS_Cortisol_final$Cortisol_log[idx[3]] - SOS_Cortisol_final$Cortisol_log[idx[2]])
+     if (T2T3_list[i] > "0"){ 
+      T2T3_direction[i] <- "1"
+      } else {
+      T2T3_direction[i] <- "0"
+      }
+    }
+
+#Reformat lists into data.frames     
+T2T3_list <- data.frame(T2T3_list)
+T2T3_list <- t(T2T3_list)
+T2T3_list <- data.frame(T2T3_list)
+
+T2T3_id <- data.frame(T2T3_id)
+T2T3_id <- t(T2T3_id)
+T2T3_id <- data.frame(T2T3_id)
+
+T2T3_direction <- data.frame(T2T3_direction)
+T2T3_direction <- t(T2T3_direction)
+T2T3_direction <- data.frame(T2T3_direction)
+
+#Merge two data.frames
+T2T3_all <- cbind(T2T3_list, T2T3_id, T2T3_direction)
+
+#Clear variables no longer needed:
+rm(T2T3_list, T2T3_id, T2T3_direction)
+
+#Rename columns for merge (SampleID, also helps for checking that the rows have matched appropriately)
+names(T2T3_all)[1]<- "Change_T2_T3"
+names(T2T3_all)[2]<- "SampleID"
+names(T2T3_all)[3]<- "Change_T2_T3_Direction"
+
+#Merge with SOS_Cortisol_final and remove unecessary extra SampleID column:
+SOS_Cortisol_final <-merge(SOS_Cortisol_final, T2T3_all, by = "SampleID", all = TRUE)
+rm(T2T3_all)
+
+(summary(SOS_Cortisol_final$Change_T2_T3_Direction)/4)
+```
+
+```{r}
+SOS_Cortisol_final$Change_T2_T3_Direction <- as.factor(SOS_Cortisol_final$Change_T2_T3_Direction)
+```
+
+```{r}
+ChangeT2T3 <- ggplot(SOS_Cortisol_final, aes(Change_T2_T3_Direction, Change_T2_T3, colour=Responders)) +
+    geom_violin() +
+    geom_boxplot(width=0.2, position = "dodge2") + 
+    stat_summary(fun.data=mean_sdl, 
+                 geom="pointrange") +
+    geom_jitter(shape=16, position=position_jitter(0.05))
+
+ChangeT2T3
+```
+How many people are responders who have a positive change: 
+```{r}
+Resp_pos <- count(which(SOS_Cortisol_final$Responders == 1 & SOS_Cortisol_final$Change_T2_T3_Direction == 1))
+(nrow(Resp_pos)/4)
+```
+
+How many people are responders who have a negative change: 
+```{r}
+Resp_neg <- count(which(SOS_Cortisol_final$Responders == 1 & SOS_Cortisol_final$Change_T2_T3_Direction == 0))
+(nrow(Resp_neg)/4)
+```
+How many people are non-responders who have a positive change: 
+```{r}
+Non_resp_pos <- count(which(SOS_Cortisol_final$Responders == 0 & SOS_Cortisol_final$Change_T2_T3_Direction == 1))
+(nrow(Non_resp_pos)/4)
+```
+
+How many people are non-responders who have a negative change: 
+```{r}
+Non_resp_neg <- count(which(SOS_Cortisol_final$Responders == 0 & SOS_Cortisol_final$Change_T2_T3_Direction == 0))
+(nrow(Non_resp_neg)/4)
+```
+
+```{r}
+rm(Resp_pos, Resp_neg, Non_resp_pos, Non_resp_neg)
+```
+
+We are interested to see what the area under the curve looks like for people's change between T2 and T3:
+```{r}
+#Calculate the area under the curve between T2 and T3:
+AUC_list <- list()
+AUC_id <- list()
+
+for (i in unique(SOS_Cortisol_final$SampleID)) {
+    idx <- which(SOS_Cortisol_final$SampleID==i, arr.ind=TRUE)
+    #Get participants AUC for T1-4:
+    AUC_list[i] <- auc(
+                SOS_Cortisol_final$Time[idx],
+                SOS_Cortisol_final$BL_Norm_Cortisol_log[idx],
+                from = min(2, na.rm = TRUE),
+                to = max(3, na.rm = TRUE),
+                type = c("linear"),
+                absolutearea = FALSE,
+                subdivisions = 100
+                )
+    #Get SampleID
+    AUC_id[i] <- i
+}
+#Reformat lists into data.frames     
+AUC_list <- data.frame(AUC_list)
+AUC_list <- t(AUC_list)
+AUC_list <- data.frame(AUC_list)
+
+AUC_id <- data.frame(AUC_id)
+AUC_id <- t(AUC_id)
+AUC_id <- data.frame(AUC_id)
+
+#Merge two data.frames
+AUC_all <- cbind(AUC_list, AUC_id)
+
+#Clear variables no longer needed:
+rm(AUC_list, AUC_id)
+
+#Rename columns for merge (SampleID, also helps for checking that the rows have matched appropriately)
+names(AUC_all)[1]<- "AUC_BL_Norm_Cortisol_log_T2_T3"
+names(AUC_all)[2]<- "SampleID"
+
+#Merge with SOS_Cortisol_final and remove unecessary extra SampleID column:
+SOS_Cortisol_final <-merge(SOS_Cortisol_final, AUC_all, by = "SampleID", all = TRUE)
+rm(AUC_all)
+
+AUC_plot <- ggplot(SOS_Cortisol_final, aes(Change_T2_T3_Direction, AUC_BL_Norm_Cortisol_log_T2_T3, colour=Change_T2_T3_Direction)) +
+    geom_violin() +
+    geom_boxplot(width=0.2, position = "dodge2") + 
+    stat_summary(fun.data=mean_sdl, 
+                 geom="pointrange") +
+    geom_jitter(shape=16, position=position_jitter(0.05))
+AUC_plot
+
+```
+
+```{r}
+
+```
+

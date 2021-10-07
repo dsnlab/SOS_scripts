@@ -1,0 +1,58 @@
+---
+title: "SOS Biologiacal data visualisation: ESTRADIOL"
+output: html_notebook
+---
+#load libraries:
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library("data.table")
+library(stringr)
+library("plyr")
+library(ggpubr)
+library(DescTools)
+library(MESS)
+
+First, we import the SOS_hormones_cleaned.csv file and remove participants who do not have Cortisol data at all 4 time points. 
+```{r}
+#import cleaned bioloigcal dataset:
+setwd("~/Documents/8_Byrne_work/SOS_Bioloigical_data_cleaned")
+SOS_hormones_cleaned <- read.csv('SOS_hormones_cleaned.csv')
+SOS_hormones_cleaned$SampleID <- as.character(SOS_hormones_cleaned$SampleID)
+
+#Create variable specfic to Cortisol:
+SOS_Estradiol <- SOS_hormones_cleaned[,c("SampleID", "Time","Estradiol_pg_mL", "Estradiol_log", "Estradiol_nontran_win")]
+
+#Remove additional time points (no Estradiol collection)
+SOS_Estradiol_final = SOS_Estradiol %>% filter(Time == "1")
+SOS_Estradiol_final <- na.omit(SOS_Estradiol)
+SOS_Estradiol_final <- (SOS_Estradiol_final %>% arrange(SampleID,Time))
+
+total <- unique(SOS_hormones_cleaned$SampleID)
+total_keep <- unique(SOS_Estradiol_final$SampleID)
+
+perc_keep <- ((length(total_keep)/length(total)) * 100)
+perc_keep
+```
+
+EstradioL_LOG:
+```{r}
+All_participants_plot <- ggplot(SOS_Estradiol_final, aes(1, Estradiol_log)) +
+    geom_violin() +
+    geom_boxplot(width=0.1) + 
+    stat_summary(fun.data=mean_sdl, 
+                 geom="pointrange", color="red") +
+    geom_jitter(shape=16, position=position_jitter(0.02))
+
+All_participants_plot
+```
+
+Plot AUC values for responders
+```{r}
+summary(SOS_Estradiol_final)
+```
+
+
+```{r}
+t.test(SOS_Estradiol_final$Estradiol_log)
+```
